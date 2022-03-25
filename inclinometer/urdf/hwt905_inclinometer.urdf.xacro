@@ -1,0 +1,133 @@
+<?xml version="1.0"?>
+<robot name="vtol" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <xacro:property name="INCLINOMETER_BASE_X"    value="0.055" />
+  <xacro:property name="INCLINOMETER_BASE_Y"    value="0.0368" />
+  <xacro:property name="INCLINOMETER_BASE_Z"    value="0.004" />
+
+  <xacro:property name="INCLINOMETER_BOX_X"     value="0.04" />
+  <xacro:property name="INCLINOMETER_BOX_Y"     value="0.0368" />
+  <xacro:property name="INCLINOMETER_BOX_Z"     value="0.024" />
+
+  <xacro:property name="HOLE_RADIUS"            value="0.0024" />
+  <xacro:property name="HOLE_SHIFT_X"           value="0.0245" />
+  <xacro:property name="HOLE_SHIFT_Y"           value="0.01435" />
+
+  <material name="grey">
+    <color rgba="0.5 0.5 0.5 1.0"/>
+  </material>
+  <material name="white">
+    <color rgba="1.0 1.0 1.0 1.0"/>
+  </material>
+
+  <link name="base_footprint"/>
+
+  <link name="base_link">
+    <visual>
+      <origin xyz="0 0 0" rpy="3.14 0 3.14"/>
+      <geometry>
+        <box size="${INCLINOMETER_BASE_X} ${INCLINOMETER_BASE_Y} ${INCLINOMETER_BASE_Z}"/>
+      </geometry>
+      <material name="grey"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <box size="${INCLINOMETER_BASE_X} ${INCLINOMETER_BASE_Y} ${INCLINOMETER_BASE_Z}"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="base_joint" type="fixed">
+    <parent link="base_footprint"/>
+    <child link="base_link"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </joint>
+
+  <link name="box_link">
+    <visual>
+      <origin xyz="0 0 0" rpy="3.14 0 3.14"/>
+      <geometry>
+        <box size="${INCLINOMETER_BOX_X} ${INCLINOMETER_BOX_Y} ${INCLINOMETER_BOX_Z}"/>
+      </geometry>
+      <material name="grey"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <box size="${INCLINOMETER_BOX_X} ${INCLINOMETER_BOX_Y} ${INCLINOMETER_BOX_Z}"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="box_joint" type="fixed">
+    <parent link="base_footprint"/>
+    <child link="box_link"/>
+    <origin xyz="0 0 ${INCLINOMETER_BOX_Z/2}" rpy="0 0 0"/>
+  </joint>
+
+  <link name="hole_front_left">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="${HOLE_RADIUS}" length="${INCLINOMETER_BASE_Z * 1.05}" />
+      </geometry>
+      <material name="white"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0"/>
+      <geometry>
+        <cylinder radius="${HOLE_RADIUS}" length="${INCLINOMETER_BASE_Z}" />
+      </geometry>
+    </collision>
+  </link>
+  <joint name="hole_front_left_connect" type="fixed">
+    <parent link="base_link"/>
+    <child link="hole_front_left"/>
+    <origin xyz="${HOLE_SHIFT_X} ${HOLE_SHIFT_Y} 0.0" rpy="0 0 0"/>
+    <axis xyz="0 0 1"/>
+  </joint>
+
+  <link name="hole_front_right">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="${HOLE_RADIUS}" length="${INCLINOMETER_BASE_Z * 1.05}" />
+      </geometry>
+      <material name="white"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0"/>
+      <geometry>
+        <cylinder radius="${HOLE_RADIUS}" length="${INCLINOMETER_BASE_Z}" />
+      </geometry>
+    </collision>
+  </link>
+  <joint name="hole_front_right_connect" type="fixed">
+    <parent link="base_link"/>
+    <child link="hole_front_right"/>
+    <origin xyz="${HOLE_SHIFT_X} ${-HOLE_SHIFT_Y} 0.0" rpy="0 0 0"/>
+    <axis xyz="0 0 1"/>
+  </joint>
+
+  <link name="hole_rear">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="${HOLE_RADIUS}" length="${INCLINOMETER_BASE_Z * 1.05}" />
+      </geometry>
+      <material name="white"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0"/>
+      <geometry>
+        <cylinder radius="${HOLE_RADIUS}" length="${INCLINOMETER_BASE_Z}" />
+      </geometry>
+    </collision>
+  </link>
+  <joint name="hole_rear_connect" type="fixed">
+    <parent link="base_link"/>
+    <child link="hole_rear"/>
+    <origin xyz="${-HOLE_SHIFT_X} 0.0 0.0" rpy="0 0 0"/>
+    <axis xyz="0 0 1"/>
+  </joint>
+
+</robot>
