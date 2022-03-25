@@ -1,5 +1,7 @@
 # HWT905 ROS driver
 
+[![Catkin build](https://github.com/Ant-Robotics-Inc/hwt905-ros-driver/workflows/catkin_build/badge.svg?branch=master)](https://github.com/Ant-Robotics-Inc/hwt905-ros-driver/actions/workflows/catkin_build.yml)
+
 [WitMotion HWT905](https://www.wit-motion.com/9-axis/witmotion-hwt905-rs232-high.html) is RS232 High Accuracy 0.05 ° Military-Grade Sensor Inclinometer 9 Axis AHRS Sensor Waterproof IP67 & Anti-vibration.
 
 This is ROS-package that allows you work with this device.
