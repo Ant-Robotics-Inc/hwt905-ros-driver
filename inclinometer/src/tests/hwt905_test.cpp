@@ -135,6 +135,32 @@ TEST(Hwt905Test, process_normal_few_real_msgs){
 }
 
 
+/**
+ * @brief parse get_time()
+ */
+TEST(Hwt905Test, get_time_normal){
+    Hwt905Driver hwt905_driver;
+    const uint8_t BUFFER[] = {
+        0x55, 0x51, 0x01, 0x00, 0xFE, 0xFF, 0x00, 0x08, 0x7A, 0x0B, 0x31,
+    };
+    Hwt905_Acceleration_t expected_accel = {
+        .ax = 0.0048,
+        .ay = -0.0096,
+        .az = 9.80,
+        .temperature = 29.38,
+    };
+
+    for (size_t idx = 0; idx < sizeof(BUFFER); idx++) {
+        hwt905_driver.process_next_byte(BUFFER[idx]);
+    }
+
+    Hwt905_Acceleration_t actual_accel;
+    hwt905_driver.get_acceleration(&actual_accel);
+    ASSERT_NEAR(actual_accel.ax, expected_accel.ax, 0.001);
+    ASSERT_NEAR(actual_accel.ay, expected_accel.ay, 0.001);
+    ASSERT_NEAR(actual_accel.az, expected_accel.az, 0.001);
+    ASSERT_NEAR(actual_accel.temperature, expected_accel.temperature, 0.01);
+}
 
 
 int main(int argc, char *argv[]){

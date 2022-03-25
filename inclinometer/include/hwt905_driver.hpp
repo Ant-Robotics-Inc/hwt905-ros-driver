@@ -24,6 +24,7 @@ enum Hwt905_DataType_t {
 
 struct Hwt905_Time_t {
     uint8_t year;
+    uint8_t month;
     uint8_t day;
     uint8_t hour;
     uint8_t minute;

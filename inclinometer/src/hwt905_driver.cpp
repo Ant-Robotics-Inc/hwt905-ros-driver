@@ -42,63 +42,63 @@ struct TimePayload_t {
 
 
 ///< 5.1.2 Acceleration Output
-struct Acceleration_t {
+struct AccelerationPayload_t {
     uint16_t header;
     uint8_t AxL;
-    uint8_t AxH;
+    int8_t AxH;
     uint8_t AyL;
-    uint8_t AyH;
+    int8_t AyH;
     uint8_t AzL;
-    uint8_t AzH;
+    int8_t AzH;
     uint8_t TL;
     uint8_t TH;
     uint8_t SUM;
 };
 
 ///< 5.1.3 Angular Velocity Output
-struct AngularVelocity_t {
+struct AngularVelocityPayload_t {
     uint16_t header;
     uint8_t wxL;
-    uint8_t wxH;
+    int8_t wxH;
     uint8_t wyL;
-    uint8_t wyH;
+    int8_t wyH;
     uint8_t wzL;
-    uint8_t wzH;
+    int8_t wzH;
     uint8_t TL;
     uint8_t TH;
     uint8_t sum;
 };
 
 ///< 5.1.4  Angle Output
-struct Angle_t {
+struct AnglePayload_t {
     uint16_t header;
     uint8_t RollL;
-    uint8_t RollH;
+    int8_t RollH;
     uint8_t PitchL;
-    uint8_t PitchH;
+    int8_t PitchH;
     uint8_t YawL;
-    uint8_t YawH;
+    int8_t YawH;
     uint8_t VL;
     uint8_t VH;
     uint8_t sum;
 };
 
 ///< 5.1.5 Magnetic Output
-struct Magnetic_t {
+struct MagneticPayload_t {
     uint16_t header;
     uint8_t HxL;
-    uint8_t HxH;
+    int8_t HxH;
     uint8_t HyL;
-    uint8_t HyH;
+    int8_t HyH;
     uint8_t HzL;
-    uint8_t HzH;
+    int8_t HzH;
     uint8_t TL;
     uint8_t TH;
     uint8_t sum;
 };
 
 ///< 5.1.6 Quaternion Output
-struct Quaternion_t {
+struct QuaternionPayload_t {
     uint16_t header;
     uint8_t Q0L;
     uint8_t Q0H;
@@ -118,11 +118,11 @@ constexpr const size_t Hwt905Driver::PAYLOAD_SIZE;
 
 // All structures must be packed.
 static_assert(sizeof(TimePayload_t) == Hwt905Driver::PAYLOAD_SIZE);
-static_assert(sizeof(Acceleration_t) == Hwt905Driver::PAYLOAD_SIZE);
-static_assert(sizeof(AngularVelocity_t) == Hwt905Driver::PAYLOAD_SIZE);
-static_assert(sizeof(Angle_t) == Hwt905Driver::PAYLOAD_SIZE);
-static_assert(sizeof(Magnetic_t) == Hwt905Driver::PAYLOAD_SIZE);
-static_assert(sizeof(Quaternion_t) == Hwt905Driver::PAYLOAD_SIZE);
+static_assert(sizeof(AccelerationPayload_t) == Hwt905Driver::PAYLOAD_SIZE);
+static_assert(sizeof(AngularVelocityPayload_t) == Hwt905Driver::PAYLOAD_SIZE);
+static_assert(sizeof(AnglePayload_t) == Hwt905Driver::PAYLOAD_SIZE);
+static_assert(sizeof(MagneticPayload_t) == Hwt905Driver::PAYLOAD_SIZE);
+static_assert(sizeof(QuaternionPayload_t) == Hwt905Driver::PAYLOAD_SIZE);
 
 
 Hwt905_DataType_t Hwt905Driver::process_next_byte(uint8_t byte) {
@@ -147,13 +147,21 @@ void Hwt905Driver::linearize_ring_buffer(uint8_t linear_buf[PAYLOAD_SIZE],
     memcpy(linear_buf + PAYLOAD_SIZE - beggining_idx, ring_buf, beggining_idx);
 }
 
-
 bool Hwt905Driver::get_time(Hwt905_Time_t* time) {
     if (time == nullptr) {
         return false;
     }
 
-    return false;
+    auto payload = reinterpret_cast<const TimePayload_t*>(_linear_buffer);
+    time->year = payload->YY;
+    time->month = payload->MM;
+    time->day = payload->DD;
+    time->hour = payload->hh;
+    time->minute = payload->mm;
+    time->second = payload->ss;
+    time->millisecond = (payload->msH << 8) | payload->msL;
+
+    return true;
 }
 
 bool Hwt905Driver::get_acceleration(Hwt905_Acceleration_t* accel) {
@@ -161,7 +169,13 @@ bool Hwt905Driver::get_acceleration(Hwt905_Acceleration_t* accel) {
         return false;
     }
 
-    return false;
+    auto payload = reinterpret_cast<const AccelerationPayload_t*>(_linear_buffer);
+    accel->ax = ((payload->AxH << 8) | payload->AxL) * 16 * 9.8 / 32768;
+    accel->ay = ((payload->AyH << 8) | payload->AyL) * 16 * 9.8 / 32768;
+    accel->az = ((payload->AzH << 8) | payload->AzL) * 16 * 9.8 / 32768;
+    accel->temperature = ((payload->TH << 8) | payload->TL) * 0.01;
+
+    return true;
 }
 
 bool Hwt905Driver::get_angular_velocity(Hwt905_AngularVelocity_t* ang_vel) {
@@ -169,7 +183,13 @@ bool Hwt905Driver::get_angular_velocity(Hwt905_AngularVelocity_t* ang_vel) {
         return false;
     }
 
-    return false;
+    auto payload = reinterpret_cast<const AngularVelocityPayload_t*>(_linear_buffer);
+    ang_vel->wx = ((payload->wxH << 8) | payload->wxL) * 2000 / 32768;
+    ang_vel->wy = ((payload->wyH << 8) | payload->wyL) * 2000 / 32768;
+    ang_vel->wz = ((payload->wzH << 8) | payload->wzL) * 2000 / 32768;
+    ang_vel->temperature = ((payload->TH << 8) | payload->TL) * 0.01;
+
+    return true;
 }
 
 bool Hwt905Driver::get_angle(Hwt905_Angle_t* angle) {
