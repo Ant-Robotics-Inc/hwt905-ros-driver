@@ -11,34 +11,7 @@
 #include <cstddef>
 
 
-#define START_BYTE              0x55
-#define START_BYTE_TIME         0x50
-#define START_BYTE_ACCEL        0x51
-#define START_BYTE_ANG_VEL      0x52
-#define START_BYTE_ANGLE        0x53
-#define START_BYTE_MAG          0x54
-#define START_BYTE_QUATERNION   0x55
-
-// enum DataTypeHeader_t : uint16_t {
-//     HEADER_TIME         = (START_BYTE << 8) | START_BYTE_TIME,
-//     HEADER_ACCEL        = (START_BYTE << 8) | START_BYTE_ACCEL,
-//     HEADER_ANG_VEL      = (START_BYTE << 8) | START_BYTE_ANG_VEL,
-//     HEADER_ANGLE        = (START_BYTE << 8) | START_BYTE_ANGLE,
-//     HEADER_MAG          = (START_BYTE << 8) | START_BYTE_MAG,
-//     HEADER_QUATERNION   = (START_BYTE << 8) | START_BYTE_QUATERNION,
-// };
-
-enum DataTypeHeader_t : uint16_t {
-    HEADER_TIME         = (START_BYTE) | (START_BYTE_TIME << 8),
-    HEADER_ACCEL        = (START_BYTE) | (START_BYTE_ACCEL << 8),
-    HEADER_ANG_VEL      = (START_BYTE) | (START_BYTE_ANG_VEL << 8),
-    HEADER_ANGLE        = (START_BYTE) | (START_BYTE_ANGLE << 8),
-    HEADER_MAG          = (START_BYTE) | (START_BYTE_MAG << 8),
-    HEADER_QUATERNION   = (START_BYTE) | (START_BYTE_QUATERNION << 8),
-};
-
-
-enum DataType_t {
+enum Hwt905_DataType_t {
     DATA_TYPE_NONE,
     DATA_TYPE_TIME,
     DATA_TYPE_ACCEL,
@@ -49,108 +22,70 @@ enum DataType_t {
     NUMBER_OF_DATA_TYPES,
 };
 
-class Hwt905Driver;
-
-///< 5.1.1 Time Output
-#pragma pack(push, 1)
-struct TimePayload_t {
-    uint16_t header;
-    uint8_t YY;
-    uint8_t MM;
-    uint8_t DD;
-    uint8_t hh;
-    uint8_t mm;
-    uint8_t ss;
-    uint8_t msL;
-    uint8_t msH;
-    uint8_t SUM;
+struct Hwt905_Time_t {
+    uint8_t year;
+    uint8_t day;
+    uint8_t hour;
+    uint8_t minute;
+    uint8_t second;
+    uint8_t millisecond;
 };
 
-
-///< 5.1.2 Acceleration Output
-struct Acceleration_t {
-    uint16_t header;
-    uint8_t AxL;
-    uint8_t AxH;
-    uint8_t AyL;
-    uint8_t AyH;
-    uint8_t AzL;
-    uint8_t AzH;
-    uint8_t TL;
-    uint8_t TH;
-    uint8_t SUM;
+struct Hwt905_Acceleration_t {
+    float ax;
+    float ay;
+    float az;
+    float temperature;
 };
 
-///< 5.1.3 Angular Velocity Output
-struct AngularVelocity_t {
-    uint16_t header;
-    uint8_t wxL;
-    uint8_t wxH;
-    uint8_t wyL;
-    uint8_t wyH;
-    uint8_t wzL;
-    uint8_t wzH;
-    uint8_t TL;
-    uint8_t TH;
-    uint8_t sum;
+struct Hwt905_AngularVelocity_t {
+    float wx;
+    float wy;
+    float wz;
+    float temperature;
 };
 
-///< 5.1.4  Angle Output
-struct Angle_t {
-    uint16_t header;
-    uint8_t RollL;
-    uint8_t RollH;
-    uint8_t PitchL;
-    uint8_t PitchH;
-    uint8_t YawL;
-    uint8_t YawH;
-    uint8_t VL;
-    uint8_t VH;
-    uint8_t sum;
+struct Hwt905_Angle_t {
+    float roll;
+    float pitch;
+    float yaw;
+    uint16_t version;
 };
 
-///< 5.1.5 Magnetic Output
-struct Magnetic_t {
-    uint16_t header;
-    uint8_t HxL;
-    uint8_t HxH;
-    uint8_t HyL;
-    uint8_t HyH;
-    uint8_t HzL;
-    uint8_t HzH;
-    uint8_t TL;
-    uint8_t TH;
-    uint8_t sum;
+struct Hwt905_Magnetic_t {
+    uint16_t mag_x;
+    uint16_t mag_y;
+    uint16_t mag_z;
+    float temperature;
 };
 
-///< 5.1.6 Quaternion Output
-struct Quaternion_t {
-    uint16_t header;
-    uint8_t Q0L;
-    uint8_t Q0H;
-    uint8_t Q1L;
-    uint8_t Q1H;
-    uint8_t Q2L;
-    uint8_t Q2H;
-    uint8_t Q3L;
-    uint8_t Q3H;
-    uint8_t sum;
+struct Hwt905_Quaternion_t {
+    float q_0;
+    float q_1;
+    float q_2;
+    float q_3;
 };
-#pragma pack(pop)
 
 
 class Hwt905Driver {
 public:
     Hwt905Driver() {};
-    DataType_t process(uint8_t byte);
+    Hwt905_DataType_t process_next_byte(uint8_t byte);
 
     static constexpr const size_t PAYLOAD_SIZE = 11;
     static void linearize_ring_buffer(uint8_t linear_buf[PAYLOAD_SIZE],
                                       const uint8_t ring_buf[PAYLOAD_SIZE],
                                       size_t ring_buf_idx);
+
+    bool get_time(Hwt905_Time_t* time);
+    bool get_acceleration(Hwt905_Acceleration_t* accel);
+    bool get_angular_velocity(Hwt905_AngularVelocity_t* ang_vel);
+    bool get_angle(Hwt905_Angle_t* angle);
+    bool get_magnetic_field(Hwt905_Magnetic_t* mag);
+    bool get_quaternion(Hwt905_Quaternion_t* quaternion);
 private:
     void _linearize_ring_buffer();
-    DataType_t check_payload();
+    Hwt905_DataType_t check_payload();
 
     uint8_t _ring_buffer[PAYLOAD_SIZE];
     uint8_t _linear_buffer[PAYLOAD_SIZE];

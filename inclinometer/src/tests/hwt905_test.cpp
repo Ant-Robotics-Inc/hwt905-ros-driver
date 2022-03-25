@@ -88,7 +88,7 @@ TEST(Hwt905Test, linearize_ring_buffer_offset_minus_2){
 
 
 /**
- * @brief process()
+ * @brief process_next_byte()
  */
 TEST(Hwt905Test, process_normal_single_real_msg){
     Hwt905Driver hwt905_driver;
@@ -101,7 +101,7 @@ TEST(Hwt905Test, process_normal_single_real_msg){
 
     uint8_t parsed_data_types[sizeof(EXCPECTED_DATA_TYPES)] = {};
     for (size_t idx = 0; idx < sizeof(EXCPECTED_DATA_TYPES); idx++) {
-        parsed_data_types[idx] = hwt905_driver.process(BUFFER[idx]);
+        parsed_data_types[idx] = hwt905_driver.process_next_byte(BUFFER[idx]);
     }
     compare_arrays(parsed_data_types, EXCPECTED_DATA_TYPES, sizeof(EXCPECTED_DATA_TYPES));
 }
@@ -129,7 +129,7 @@ TEST(Hwt905Test, process_normal_few_real_msgs){
 
     uint8_t parsed_data_types[sizeof(EXCPECTED_DATA_TYPES)] = {};
     for (size_t idx = 0; idx < sizeof(EXCPECTED_DATA_TYPES); idx++) {
-        parsed_data_types[idx] = hwt905_driver.process(BUFFER[idx]);
+        parsed_data_types[idx] = hwt905_driver.process_next_byte(BUFFER[idx]);
     }
     compare_arrays(parsed_data_types, EXCPECTED_DATA_TYPES, sizeof(EXCPECTED_DATA_TYPES));
 }

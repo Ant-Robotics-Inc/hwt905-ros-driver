@@ -11,39 +11,78 @@
 
 class InclinometerDriverRos {
 public:
-    InclinometerDriverRos(ros::NodeHandle& ros_node);
+    InclinometerDriverRos(ros::NodeHandle& ros_node, Hwt905Driver& hwt905_driver);
     void publish();
+    void process_parsed_result(Hwt905_DataType_t data_type);
 private:
     ros::NodeHandle& _ros_node;
+    Hwt905Driver& _hwt905_driver;
     ros::Publisher _ros_pub;
-    sensor_msgs::Imu _msg;
+    sensor_msgs::Imu _imu_msg;
+
+    Hwt905_Time_t _time;
+    Hwt905_Acceleration_t _accel;
+    Hwt905_AngularVelocity_t _ang_vel;
+    Hwt905_Angle_t _angle;
+    Hwt905_Magnetic_t _mag;
+    Hwt905_Quaternion_t _quaternion;
 };
 
 
-InclinometerDriverRos::InclinometerDriverRos(ros::NodeHandle& ros_node): _ros_node(ros_node) {
+InclinometerDriverRos::InclinometerDriverRos(ros::NodeHandle& ros_node, Hwt905Driver& hwt905_driver):
+        _ros_node(ros_node), _hwt905_driver(hwt905_driver) {
     _ros_pub = ros_node.advertise<sensor_msgs::Imu>("/inclinometer", 5);
 
-    _msg.header.stamp = ros::Time::now();
-    _msg.header.frame_id = "world";
-    _msg.orientation.x = 0.0;
-    _msg.orientation.y = 0.0;
-    _msg.orientation.z = 0.0;
-    _msg.orientation.w = 1.0;
+    _imu_msg.header.stamp = ros::Time::now();
+    _imu_msg.header.frame_id = "world";
+    _imu_msg.orientation.x = 0.0;
+    _imu_msg.orientation.y = 0.0;
+    _imu_msg.orientation.z = 0.0;
+    _imu_msg.orientation.w = 1.0;
 }
 
 void InclinometerDriverRos::publish() {
-    _msg.header.stamp = ros::Time::now();
-    _msg.header.frame_id = "world";
+    _imu_msg.header.stamp = ros::Time::now();
+    _imu_msg.header.frame_id = "world";
 
-    _ros_pub.publish(_msg);
+    _ros_pub.publish(_imu_msg);
 }
+
+void InclinometerDriverRos::process_parsed_result(Hwt905_DataType_t data_type) {
+    switch (data_type) {
+        case DATA_TYPE_NONE:
+            ///< Although here we do nothing, typically it is the most common case. Keep it first.
+            break;
+        case DATA_TYPE_TIME:
+            _hwt905_driver.get_time(&_time);
+            break;
+        case DATA_TYPE_ACCEL:
+            _hwt905_driver.get_acceleration(&_accel);
+            break;
+        case DATA_TYPE_ANG_VEL:
+            _hwt905_driver.get_angular_velocity(&_ang_vel);
+            break;
+        case DATA_TYPE_ANGLE:
+            _hwt905_driver.get_angle(&_angle);
+            break;
+        case DATA_TYPE_MAG:
+            _hwt905_driver.get_magnetic_field(&_mag);
+            break;
+        case DATA_TYPE_QUATERNION:
+            _hwt905_driver.get_quaternion(&_quaternion);
+            break;
+        default:
+            break;
+    }
+}
+
 
 int main(int argc, char **argv) {
     ros::init(argc, argv, "hwt905_node");
     ros::NodeHandle nh;
-    InclinometerDriverRos ros_driver(nh);
     Hwt905Driver hwt905_driver;
     SerialDriver serial_driver("/dev/ttyUSB0", 1000000);
+    InclinometerDriverRos ros_driver(nh, hwt905_driver);
 
     constexpr const size_t MAX_SERIAL_BUFFER_RECV_SIZE = 256;
     uint8_t serial_recv_buf[MAX_SERIAL_BUFFER_RECV_SIZE];
@@ -57,7 +96,8 @@ int main(int argc, char **argv) {
         num_of_recv_bytes = serial_driver.spin(serial_recv_buf, MAX_SERIAL_BUFFER_RECV_SIZE);
 
         for (size_t byte_idx = 0; byte_idx < num_of_recv_bytes; byte_idx++) {
-            hwt905_driver.process(serial_recv_buf[byte_idx]);
+            auto data_type = hwt905_driver.process_next_byte(serial_recv_buf[byte_idx]);
+            ros_driver.process_parsed_result(data_type);
         }
     }
 
