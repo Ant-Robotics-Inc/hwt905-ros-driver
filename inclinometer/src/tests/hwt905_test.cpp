@@ -138,7 +138,7 @@ TEST(Hwt905Test, process_normal_few_real_msgs){
 /**
  * @brief parse get_time()
  */
-TEST(Hwt905Test, get_time_normal){
+TEST(Hwt905Test, get_accel_normal){
     Hwt905Driver hwt905_driver;
     const uint8_t BUFFER[] = {
         0x55, 0x51, 0x01, 0x00, 0xFE, 0xFF, 0x00, 0x08, 0x7A, 0x0B, 0x31,
@@ -160,6 +160,34 @@ TEST(Hwt905Test, get_time_normal){
     ASSERT_NEAR(actual_accel.ay, expected_accel.ay, 0.001);
     ASSERT_NEAR(actual_accel.az, expected_accel.az, 0.001);
     ASSERT_NEAR(actual_accel.temperature, expected_accel.temperature, 0.01);
+}
+
+
+/**
+ * @brief parse get_angular_velocity()
+ */
+TEST(Hwt905Test, get_angular_velocity_normal){
+    Hwt905Driver hwt905_driver;
+    const uint8_t BUFFER[] = {
+        0x55, 0x52, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x7A, 0x0B, 0x2C,
+    };
+    Hwt905_AngularVelocity_t expected_ang_vel = {
+        .wx = 0.0000,
+        .wy = 0.0000,
+        .wz = 0.0000,
+        .temperature = 29.38,
+    };
+
+    for (size_t idx = 0; idx < sizeof(BUFFER); idx++) {
+        hwt905_driver.process_next_byte(BUFFER[idx]);
+    }
+
+    Hwt905_AngularVelocity_t actual_ang_vel;
+    hwt905_driver.get_angular_velocity(&actual_ang_vel);
+    ASSERT_NEAR(actual_ang_vel.wx, expected_ang_vel.wx, 0.001);
+    ASSERT_NEAR(actual_ang_vel.wy, expected_ang_vel.wy, 0.001);
+    ASSERT_NEAR(actual_ang_vel.wz, expected_ang_vel.wz, 0.001);
+    ASSERT_NEAR(actual_ang_vel.temperature, expected_ang_vel.temperature, 0.01);
 }
 
 
