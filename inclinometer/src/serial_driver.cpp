@@ -54,8 +54,24 @@ SerialDriver::SerialDriver(const std::string& port, uint32_t baudrate) :
     tty.c_cc[VTIME] = 0;            // No blocking
     tty.c_cc[VMIN] = 0;
     
-    cfsetispeed(&tty, B1000000);
-    cfsetospeed(&tty, B1000000);
+    uint32_t serial_speed;
+    switch (baudrate) {
+        case 9600:
+            serial_speed = B9600;
+            break;
+        case 921600:
+            serial_speed = B921600;
+            break;
+        case 1000000:
+            serial_speed = B1000000;
+            break;
+        default:
+            serial_speed = B9600;
+            break;
+    }
+    ROS_ERROR_STREAM("Serial port speed " << serial_speed);
+    cfsetispeed(&tty, serial_speed);
+    cfsetospeed(&tty, serial_speed);
 
     if (tcsetattr(_fd_serial_port, TCSANOW, &tty) != 0) {
         ROS_ERROR_STREAM("Error " << errno << " from tcsetattr: " << strerror(errno));
