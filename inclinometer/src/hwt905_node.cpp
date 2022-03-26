@@ -99,7 +99,7 @@ int main(int argc, char **argv) {
     ros::init(argc, argv, "hwt905_node");
     ros::NodeHandle nh;
     Hwt905Driver hwt905_driver;
-    SerialDriver serial_driver("/dev/ttyUSB0", 1000000);
+    SerialDriver serial_driver("/dev/ttyUSB2", 921600);
     InclinometerDriverRos ros_driver(nh, hwt905_driver);
 
     constexpr const size_t MAX_SERIAL_BUFFER_RECV_SIZE = 256;
