@@ -190,6 +190,32 @@ TEST(Hwt905Test, get_angular_velocity_normal){
     ASSERT_NEAR(actual_ang_vel.temperature, expected_ang_vel.temperature, 0.01);
 }
 
+/**
+ * @brief parse get_angle()
+ */
+TEST(Hwt905Test, get_angle_normal){
+    Hwt905Driver hwt905_driver;
+    const uint8_t BUFFER[] = {
+        0x55, 0x53, 0xF4, 0xFF, 0xF5, 0xFF, 0xD3, 0xC0, 0x24, 0x29, 0x6F,
+    };
+    Hwt905_Angle_t expected_ang_vel = {
+        .roll = 0.0000,
+        .pitch = 0.0000,
+        .yaw = -88,
+    };
+
+    for (size_t idx = 0; idx < sizeof(BUFFER); idx++) {
+        hwt905_driver.process_next_byte(BUFFER[idx]);
+    }
+
+    Hwt905_Angle_t actual_angle;
+    hwt905_driver.get_angle(&actual_angle);
+
+    ASSERT_NEAR(actual_angle.roll, expected_ang_vel.roll, 0.1);
+    ASSERT_NEAR(actual_angle.pitch, expected_ang_vel.pitch, 0.1);
+    ASSERT_NEAR(actual_angle.yaw, expected_ang_vel.yaw, 0.1);
+}
+
 
 int main(int argc, char *argv[]){
     testing::InitGoogleTest(&argc, argv);

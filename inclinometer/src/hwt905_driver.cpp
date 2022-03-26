@@ -197,7 +197,13 @@ bool Hwt905Driver::get_angle(Hwt905_Angle_t* angle) {
         return false;
     }
 
-    return false;
+    auto payload = reinterpret_cast<const AnglePayload_t*>(_linear_buffer);
+    angle->roll = ((payload->RollH << 8) | payload->RollL) * 180 / 32768;
+    angle->pitch = ((payload->PitchH << 8) | payload->PitchL) * 180 / 32768;
+    angle->yaw = ((payload->YawH << 8) | payload->YawL) * 180 / 32768;
+    angle->version = ((payload->VH << 8) | payload->VL);
+
+    return true;
 }
 
 bool Hwt905Driver::get_magnetic_field(Hwt905_Magnetic_t* mag) {
