@@ -201,7 +201,7 @@ TEST(Hwt905Test, get_angle_normal){
     Hwt905_Angle_t expected_ang_vel = {
         .roll = 0.0000,
         .pitch = 0.0000,
-        .yaw = -88,
+        .yaw = -88.8,
     };
 
     for (size_t idx = 0; idx < sizeof(BUFFER); idx++) {
@@ -214,6 +214,34 @@ TEST(Hwt905Test, get_angle_normal){
     ASSERT_NEAR(actual_angle.roll, expected_ang_vel.roll, 0.1);
     ASSERT_NEAR(actual_angle.pitch, expected_ang_vel.pitch, 0.1);
     ASSERT_NEAR(actual_angle.yaw, expected_ang_vel.yaw, 0.1);
+}
+
+/**
+ * @brief parse get_magnetic_field()
+ */
+TEST(Hwt905Test, get_magnetic_field_normal){
+    Hwt905Driver hwt905_driver;
+    const uint8_t BUFFER[] = {
+        0x55, 0x54, 0x86, 0xF4, 0x37, 0x00, 0x92, 0xF8, 0x7A, 0x0B, 0x69,
+    };
+    Hwt905_Magnetic_t expected_mag = {
+        .mag_x = 62598,
+        .mag_y = 55,
+        .mag_z = 63634,
+        .temperature = 29.38,
+    };
+
+    for (size_t idx = 0; idx < sizeof(BUFFER); idx++) {
+        hwt905_driver.process_next_byte(BUFFER[idx]);
+    }
+
+    Hwt905_Magnetic_t actual_mag;
+    hwt905_driver.get_magnetic_field(&actual_mag);
+
+    ASSERT_EQ(actual_mag.mag_x, expected_mag.mag_x);
+    ASSERT_EQ(actual_mag.mag_y, expected_mag.mag_y);
+    ASSERT_EQ(actual_mag.mag_z, expected_mag.mag_z);
+    ASSERT_NEAR(actual_mag.temperature, expected_mag.temperature, 0.1);
 }
 
 

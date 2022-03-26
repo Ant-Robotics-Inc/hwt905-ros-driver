@@ -13,7 +13,7 @@
 #define START_BYTE_ANG_VEL      0x52
 #define START_BYTE_ANGLE        0x53
 #define START_BYTE_MAG          0x54
-#define START_BYTE_QUATERNION   0x55
+#define START_BYTE_QUATERNION   0x59
 
 
 enum DataTypeHeader_t : uint16_t {
@@ -170,9 +170,9 @@ bool Hwt905Driver::get_acceleration(Hwt905_Acceleration_t* accel) {
     }
 
     auto payload = reinterpret_cast<const AccelerationPayload_t*>(_linear_buffer);
-    accel->ax = ((payload->AxH << 8) | payload->AxL) * 16 * 9.8 / 32768;
-    accel->ay = ((payload->AyH << 8) | payload->AyL) * 16 * 9.8 / 32768;
-    accel->az = ((payload->AzH << 8) | payload->AzL) * 16 * 9.8 / 32768;
+    accel->ax = ((payload->AxH << 8) | payload->AxL) * 9.8 * 16 / 32768;
+    accel->ay = ((payload->AyH << 8) | payload->AyL) * 9.8 * 16 / 32768;
+    accel->az = ((payload->AzH << 8) | payload->AzL) * 9.8 * 16 / 32768;
     accel->temperature = ((payload->TH << 8) | payload->TL) * 0.01;
 
     return true;
@@ -184,9 +184,9 @@ bool Hwt905Driver::get_angular_velocity(Hwt905_AngularVelocity_t* ang_vel) {
     }
 
     auto payload = reinterpret_cast<const AngularVelocityPayload_t*>(_linear_buffer);
-    ang_vel->wx = ((payload->wxH << 8) | payload->wxL) * 2000 / 32768;
-    ang_vel->wy = ((payload->wyH << 8) | payload->wyL) * 2000 / 32768;
-    ang_vel->wz = ((payload->wzH << 8) | payload->wzL) * 2000 / 32768;
+    ang_vel->wx = ((payload->wxH << 8) | payload->wxL) * 2000.0 / 32768;
+    ang_vel->wy = ((payload->wyH << 8) | payload->wyL) * 2000.0 / 32768;
+    ang_vel->wz = ((payload->wzH << 8) | payload->wzL) * 2000.0 / 32768;
     ang_vel->temperature = ((payload->TH << 8) | payload->TL) * 0.01;
 
     return true;
@@ -198,9 +198,9 @@ bool Hwt905Driver::get_angle(Hwt905_Angle_t* angle) {
     }
 
     auto payload = reinterpret_cast<const AnglePayload_t*>(_linear_buffer);
-    angle->roll = ((payload->RollH << 8) | payload->RollL) * 180 / 32768;
-    angle->pitch = ((payload->PitchH << 8) | payload->PitchL) * 180 / 32768;
-    angle->yaw = ((payload->YawH << 8) | payload->YawL) * 180 / 32768;
+    angle->roll = ((payload->RollH << 8) | payload->RollL) * (180.0 / 32768);
+    angle->pitch = ((payload->PitchH << 8) | payload->PitchL) * (180.0 / 32768);
+    angle->yaw = ((payload->YawH << 8) | payload->YawL) * (180.0 / 32768);
     angle->version = ((payload->VH << 8) | payload->VL);
 
     return true;
@@ -211,7 +211,13 @@ bool Hwt905Driver::get_magnetic_field(Hwt905_Magnetic_t* mag) {
         return false;
     }
 
-    return false;
+    auto payload = reinterpret_cast<const MagneticPayload_t*>(_linear_buffer);
+    mag->mag_x = (payload->HxH << 8) | payload->HxL;
+    mag->mag_y = (payload->HyH << 8) | payload->HyL;
+    mag->mag_z = (payload->HzH << 8) | payload->HzL;
+    mag->temperature = ((payload->TH << 8) | payload->TL) * 0.01;
+
+    return true;
 }
 
 bool Hwt905Driver::get_quaternion(Hwt905_Quaternion_t* quaternion) {
@@ -219,7 +225,13 @@ bool Hwt905Driver::get_quaternion(Hwt905_Quaternion_t* quaternion) {
         return false;
     }
 
-    return false;
+    auto payload = reinterpret_cast<const QuaternionPayload_t*>(_linear_buffer);
+    quaternion->q_0 = (payload->Q0H << 8) | payload->Q0L;
+    quaternion->q_1 = (payload->Q1H << 8) | payload->Q1L;
+    quaternion->q_2 = (payload->Q2H << 8) | payload->Q2L;
+    quaternion->q_3 = (payload->Q3H << 8) | payload->Q3L;
+
+    return true;
 }
 
 
