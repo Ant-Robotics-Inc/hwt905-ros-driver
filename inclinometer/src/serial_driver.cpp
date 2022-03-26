@@ -51,7 +51,7 @@ SerialDriver::SerialDriver(const std::string& port, uint32_t baudrate) :
     tty.c_oflag &= ~ONLCR;          // Prevent conversion of newline to carriage return/line feed
 
     // configurate timeouts
-    tty.c_cc[VTIME] = 1;            // Wait for up to 0.1s (1 deciseconds), returning as soon as any data is received.
+    tty.c_cc[VTIME] = 0;            // No blocking
     tty.c_cc[VMIN] = 0;
     
     cfsetispeed(&tty, B1000000);
@@ -72,9 +72,7 @@ SerialDriver::~SerialDriver() {
 
 int SerialDriver::spin(uint8_t recv_buf[], size_t max_buf_size) {
     int n = read(_fd_serial_port, &recv_buf, sizeof(max_buf_size));
-    if (n > 0) {
-        ROS_ERROR_STREAM(n);
-    } else if (n < 0) {
+    if (n < 0) {
         ROS_ERROR_STREAM_THROTTLE(1, "Recv error: " << n);
     }
 

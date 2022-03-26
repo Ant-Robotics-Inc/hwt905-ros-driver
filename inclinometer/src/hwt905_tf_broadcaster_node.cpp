@@ -26,25 +26,24 @@ void publish_state(float q_w, float q_x, float q_y, float q_z) {
 }
 
 
-void cover_cb(const sensor_msgs::Imu::ConstPtr& imu) {
+void imu_cb(const sensor_msgs::Imu::ConstPtr& imu) {
     float q_w = imu->orientation.w;
     float q_x = imu->orientation.x;
     float q_y = imu->orientation.y;
     float q_z = imu->orientation.z;
 
-    std::cout << "wxyz=[" << q_w << ", " << q_x << ", " << q_y << ", " << q_z << "]" << std::endl;
     publish_state(q_w, q_x, q_y, q_z);
 }
 
 
 int main(int argc, char **argv) {
-    ros::init(argc, argv, "cover_tf_broadcaster");
+    ros::init(argc, argv, "inclinometer_tf_broadcaster");
     ros::NodeHandle nh;
-    auto poly_sub = nh.subscribe("/inclinometer", 1, cover_cb);
+    auto imu_sub = nh.subscribe("/inclinometer", 1, imu_cb);
 
     ros::Rate loop_rate(500);
-    while ( ros::ok() ) {
-        ros::spinOnce();    // handle callbacks
+    while (ros::ok()) {
+        ros::spinOnce();
         loop_rate.sleep();
     }
 

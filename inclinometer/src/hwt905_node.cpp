@@ -35,15 +35,28 @@ InclinometerDriverRos::InclinometerDriverRos(ros::NodeHandle& ros_node, Hwt905Dr
 
     _imu_msg.header.stamp = ros::Time::now();
     _imu_msg.header.frame_id = "world";
-    _imu_msg.orientation.x = 0.0;
-    _imu_msg.orientation.y = 0.0;
-    _imu_msg.orientation.z = 0.0;
-    _imu_msg.orientation.w = 1.0;
+    _quaternion.q_0 = 0.0;
+    _quaternion.q_1 = 0.0;
+    _quaternion.q_2 = 0.0;
+    _quaternion.q_3 = 1.0;
 }
 
 void InclinometerDriverRos::publish() {
     _imu_msg.header.stamp = ros::Time::now();
     _imu_msg.header.frame_id = "world";
+
+    _imu_msg.orientation.x = _quaternion.q_0;
+    _imu_msg.orientation.y = _quaternion.q_1;
+    _imu_msg.orientation.z = _quaternion.q_2;
+    _imu_msg.orientation.w = _quaternion.q_3;
+
+    _imu_msg.angular_velocity.x = _ang_vel.wx;
+    _imu_msg.angular_velocity.y = _ang_vel.wy;
+    _imu_msg.angular_velocity.z = _ang_vel.wz;
+
+    _imu_msg.linear_acceleration.x = _accel.ax;
+    _imu_msg.linear_acceleration.y = _accel.ay;
+    _imu_msg.linear_acceleration.z = _accel.az;
 
     _ros_pub.publish(_imu_msg);
 }
@@ -55,20 +68,25 @@ void InclinometerDriverRos::process_parsed_result(Hwt905_DataType_t data_type) {
             break;
         case DATA_TYPE_TIME:
             _hwt905_driver.get_time(&_time);
+            ROS_INFO("recv TIME");
             break;
         case DATA_TYPE_ACCEL:
             _hwt905_driver.get_acceleration(&_accel);
+            ROS_INFO("recv ACCEL");
             break;
         case DATA_TYPE_ANG_VEL:
             _hwt905_driver.get_angular_velocity(&_ang_vel);
+            ROS_INFO("recv ANG VEL");
             break;
         case DATA_TYPE_ANGLE:
             _hwt905_driver.get_angle(&_angle);
+            ROS_INFO("recv ANGLE");
             break;
         case DATA_TYPE_MAG:
             _hwt905_driver.get_magnetic_field(&_mag);
             break;
         case DATA_TYPE_QUATERNION:
+            ROS_INFO("recv QUATERNION");
             _hwt905_driver.get_quaternion(&_quaternion);
             break;
         default:
@@ -89,7 +107,7 @@ int main(int argc, char **argv) {
 
     size_t num_of_recv_bytes;
     ros::Rate loop_rate(200);
-    while ( ros::ok() ) {
+    while (ros::ok()) {
         ros::spinOnce();
         loop_rate.sleep();
         ros_driver.publish();
