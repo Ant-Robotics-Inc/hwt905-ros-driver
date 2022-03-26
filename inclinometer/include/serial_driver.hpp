@@ -11,7 +11,8 @@
 
 class SerialDriver {
 public:
-    SerialDriver(const std::string& port, uint32_t baudrate);
+    SerialDriver() {};
+    void init(const std::string& port, uint32_t baudrate);
     ~SerialDriver();
     int spin(uint8_t recv_buf[], size_t max_buf_size);
 private:

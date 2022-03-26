@@ -7,22 +7,20 @@
 
 #include <ros/ros.h>
 
-#include <fcntl.h>      // Contains file controls like O_RDWR
-#include <errno.h>      // Error integer and strerror() function
-#include <termios.h>    // Contains POSIX terminal control definitions
-#include <unistd.h>     // write(), read(), close()
+#include <fcntl.h>
+#include <errno.h>
+#include <termios.h>
+#include <unistd.h>
 #include <sys/file.h>
 
 
-SerialDriver::SerialDriver(const std::string& port, uint32_t baudrate) :
-        _port(port), _baudrate(baudrate) {
-
+void SerialDriver::init(const std::string& port, uint32_t baudrate) {
     // open
     _fd_serial_port = open(port.c_str(), O_RDWR);
     if (_fd_serial_port < 0) {
         ROS_ERROR_STREAM("Error " << errno << " from open: " << strerror(errno));
     } else {
-        ROS_ERROR_STREAM("Serial port " << port << " has been successfully open.");
+        ROS_INFO_STREAM("Serial port " << port << " has been successfully open.");
     }
 
     // read settings
@@ -59,17 +57,41 @@ SerialDriver::SerialDriver(const std::string& port, uint32_t baudrate) :
         case 9600:
             serial_speed = B9600;
             break;
+        case 19200:
+            serial_speed = B19200;
+            break;
+        case 38400:
+            serial_speed = B38400;
+            break;
+        case 57600:
+            serial_speed = B57600;
+            break;
+        case 115200:
+            serial_speed = B115200;
+            break;
+        case 230400:
+            serial_speed = B230400;
+            break;
+        case 460800:
+            serial_speed = B460800;
+            break;
         case 921600:
             serial_speed = B921600;
+            ROS_ERROR_STREAM("Serial port speed is ok");
             break;
         case 1000000:
             serial_speed = B1000000;
             break;
         default:
-            serial_speed = B9600;
+            serial_speed = 0;
             break;
     }
-    ROS_ERROR_STREAM("Serial port speed " << serial_speed);
+    if (serial_speed) {
+        ROS_INFO_STREAM("Serial port: selected baudrate is " << baudrate);
+    } else {
+        serial_speed = B9600;
+        ROS_ERROR_STREAM("Serial port: unsopported baudrate " << baudrate << ". Use default 9600");
+    }
     cfsetispeed(&tty, serial_speed);
     cfsetospeed(&tty, serial_speed);
 
@@ -87,14 +109,10 @@ SerialDriver::~SerialDriver() {
 }
 
 int SerialDriver::spin(uint8_t recv_buf[], size_t max_buf_size) {
-    int n = read(_fd_serial_port, &recv_buf, sizeof(max_buf_size));
+    int n = read(_fd_serial_port, recv_buf, max_buf_size);
     if (n < 0) {
         ROS_ERROR_STREAM_THROTTLE(1, "Recv error: " << n);
     }
 
     return n;
-}
-
-int get_recv_data(uint8_t dest[]) {
-    
 }

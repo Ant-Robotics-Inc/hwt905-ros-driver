@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <launch>
-    <node pkg="inclinometer" type="hwt905_node" name="hwt905_node" output="screen"/>
+    <rosparam file="$(find inclinometer)/config/inclinometer_params.yaml" command="load" ns="hwt905/" />
+    <node pkg="inclinometer" type="hwt905_node" name="hwt905_node" output="screen" ns="hwt905"/>
 </launch>

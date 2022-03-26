@@ -4,4 +4,5 @@ source /opt/ros/$ROS_DISTRO/setup.bash
 source /catkin_ws/devel/setup.bash
 set -e
 
-roslaunch inclinometer inclinometer_with_rviz.launch
+# set `line buffering` mode to stdout
+stdbuf -o L roslaunch inclinometer inclinometer_with_rviz.launch

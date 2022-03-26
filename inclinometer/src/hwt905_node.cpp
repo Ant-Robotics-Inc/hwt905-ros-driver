@@ -99,24 +99,46 @@ int main(int argc, char **argv) {
     ros::init(argc, argv, "hwt905_node");
     ros::NodeHandle nh;
     Hwt905Driver hwt905_driver;
-    SerialDriver serial_driver("/dev/ttyUSB2", 921600);
+    SerialDriver serial_driver;
+
+    std::string serial_port;
+    int32_t baudrate;
+    if (!nh.getParam("port", serial_port) || !nh.getParam("baudrate", baudrate)) {
+        ROS_ERROR_STREAM("Inclinometer. 'port' or 'baudrate' parameter is not specified. Abort.");
+        return 0;
+    }
+    serial_driver.init(serial_port, baudrate);
+
     InclinometerDriverRos ros_driver(nh, hwt905_driver);
 
     constexpr const size_t MAX_SERIAL_BUFFER_RECV_SIZE = 256;
     uint8_t serial_recv_buf[MAX_SERIAL_BUFFER_RECV_SIZE];
 
-    size_t num_of_recv_bytes;
+    size_t num_of_recv_bytes_amount = 0;
+    int32_t num_of_recv_bytes;
     ros::Rate loop_rate(200);
     while (ros::ok()) {
         ros::spinOnce();
         loop_rate.sleep();
         ros_driver.publish();
+
         num_of_recv_bytes = serial_driver.spin(serial_recv_buf, MAX_SERIAL_BUFFER_RECV_SIZE);
+        if (num_of_recv_bytes < 0) {
+            continue;   // handle error
+        }
+
+        num_of_recv_bytes_amount += num_of_recv_bytes;
 
         for (size_t byte_idx = 0; byte_idx < num_of_recv_bytes; byte_idx++) {
             auto data_type = hwt905_driver.process_next_byte(serial_recv_buf[byte_idx]);
             ros_driver.process_parsed_result(data_type);
+
+            if (serial_recv_buf[byte_idx] == 0x55) {
+                ROS_INFO_STREAM_THROTTLE(1, "Probably get smth" << serial_recv_buf[byte_idx]);
+            }
         }
+
+        ROS_INFO_STREAM_THROTTLE(1, "Recv bytes: " << num_of_recv_bytes_amount);
     }
 
     return 0;
