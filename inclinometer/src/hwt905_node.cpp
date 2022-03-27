@@ -35,20 +35,24 @@ InclinometerDriverRos::InclinometerDriverRos(ros::NodeHandle& ros_node, Hwt905Dr
 
     _imu_msg.header.stamp = ros::Time::now();
     _imu_msg.header.frame_id = "world";
-    _quaternion.q_0 = 0.0;
-    _quaternion.q_1 = 0.0;
-    _quaternion.q_2 = 0.0;
-    _quaternion.q_3 = 1.0;
+    // .q_0 = 0.5748,
+    // .q_1 = 0.0063,
+    // .q_2 = 0.0039,
+    // .q_3 = 0.8182,
+    _quaternion.q_0 = 0.5748;
+    _quaternion.q_1 = 0.0063;
+    _quaternion.q_2 = 0.0039;
+    _quaternion.q_3 = 0.8182;
 }
 
 void InclinometerDriverRos::publish() {
     _imu_msg.header.stamp = ros::Time::now();
     _imu_msg.header.frame_id = "world";
 
-    _imu_msg.orientation.x = _quaternion.q_0;
-    _imu_msg.orientation.y = _quaternion.q_1;
-    _imu_msg.orientation.z = _quaternion.q_2;
-    _imu_msg.orientation.w = _quaternion.q_3;
+    _imu_msg.orientation.x = _quaternion.q_1;   // _quaternion.q_0
+    _imu_msg.orientation.y = _quaternion.q_2;   // _quaternion.q_1
+    _imu_msg.orientation.z = _quaternion.q_3;   // _quaternion.q_2
+    _imu_msg.orientation.w = _quaternion.q_0;   // _quaternion.q_3
 
     _imu_msg.angular_velocity.x = _ang_vel.wx;
     _imu_msg.angular_velocity.y = _ang_vel.wy;

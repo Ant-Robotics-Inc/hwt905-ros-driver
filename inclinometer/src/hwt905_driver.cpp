@@ -40,18 +40,13 @@ struct TimePayload_t {
     uint8_t SUM;
 };
 
-
 ///< 5.1.2 Acceleration Output
 struct AccelerationPayload_t {
     uint16_t header;
-    uint8_t AxL;
-    int8_t AxH;
-    uint8_t AyL;
-    int8_t AyH;
-    uint8_t AzL;
-    int8_t AzH;
-    uint8_t TL;
-    uint8_t TH;
+    int16_t ax;
+    int16_t ay;
+    int16_t az;
+    uint16_t temperature;
     uint8_t SUM;
 };
 
@@ -100,14 +95,7 @@ struct MagneticPayload_t {
 ///< 5.1.6 Quaternion Output
 struct QuaternionPayload_t {
     uint16_t header;
-    uint8_t Q0L;
-    uint8_t Q0H;
-    uint8_t Q1L;
-    uint8_t Q1H;
-    uint8_t Q2L;
-    uint8_t Q2H;
-    uint8_t Q3L;
-    uint8_t Q3H;
+    int16_t q[4];
     uint8_t sum;
 };
 #pragma pack(pop)
@@ -170,10 +158,10 @@ bool Hwt905Driver::get_acceleration(Hwt905_Acceleration_t* accel) {
     }
 
     auto payload = reinterpret_cast<const AccelerationPayload_t*>(_linear_buffer);
-    accel->ax = ((payload->AxH << 8) | payload->AxL) * 9.8 * 16 / 32768;
-    accel->ay = ((payload->AyH << 8) | payload->AyL) * 9.8 * 16 / 32768;
-    accel->az = ((payload->AzH << 8) | payload->AzL) * 9.8 * 16 / 32768;
-    accel->temperature = ((payload->TH << 8) | payload->TL) * 0.01;
+    accel->ax = payload->ax * (9.8 * 16 / 32768);
+    accel->ay = payload->ay * (9.8 * 16 / 32768);
+    accel->az = payload->az * (9.8 * 16 / 32768);
+    accel->temperature = payload->temperature * 0.01;
 
     return true;
 }
@@ -226,10 +214,10 @@ bool Hwt905Driver::get_quaternion(Hwt905_Quaternion_t* quaternion) {
     }
 
     auto payload = reinterpret_cast<const QuaternionPayload_t*>(_linear_buffer);
-    quaternion->q_0 = (payload->Q0H << 8) | payload->Q0L;
-    quaternion->q_1 = (payload->Q1H << 8) | payload->Q1L;
-    quaternion->q_2 = (payload->Q2H << 8) | payload->Q2L;
-    quaternion->q_3 = (payload->Q3H << 8) | payload->Q3L;
+    quaternion->q_0 = payload->q[0] / 32768.0;
+    quaternion->q_1 = payload->q[1] / 32768.0;
+    quaternion->q_2 = payload->q[2] / 32768.0;
+    quaternion->q_3 = payload->q[3] / 32768.0;
 
     return true;
 }

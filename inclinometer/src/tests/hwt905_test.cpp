@@ -245,6 +245,35 @@ TEST(Hwt905Test, get_magnetic_field_normal){
 }
 
 
+/**
+ * @brief parse get_quaternion()
+ */
+TEST(Hwt905Test, get_quaternion_normal){
+    Hwt905Driver hwt905_driver;
+    const uint8_t BUFFER[] = {
+        0x55, 0x59, 0x94, 0x49, 0xCF, 0x00, 0x7F, 0x00, 0xBA, 0x68, 0xFB,
+    };
+    Hwt905_Quaternion_t expected_quaternion = {
+        .q_0 = 0.5748,
+        .q_1 = 0.0063,
+        .q_2 = 0.0039,
+        .q_3 = 0.8182,
+    };
+
+    for (size_t idx = 0; idx < sizeof(BUFFER); idx++) {
+        hwt905_driver.process_next_byte(BUFFER[idx]);
+    }
+
+    Hwt905_Quaternion_t actual_quaternion;
+    hwt905_driver.get_quaternion(&actual_quaternion);
+
+    ASSERT_NEAR(actual_quaternion.q_0, expected_quaternion.q_0, 0.001);
+    ASSERT_NEAR(actual_quaternion.q_1, expected_quaternion.q_1, 0.001);
+    ASSERT_NEAR(actual_quaternion.q_2, expected_quaternion.q_2, 0.001);
+    ASSERT_NEAR(actual_quaternion.q_3, expected_quaternion.q_3, 0.001);
+}
+
+
 int main(int argc, char *argv[]){
     testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
