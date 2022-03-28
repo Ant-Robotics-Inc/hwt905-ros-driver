@@ -45,7 +45,7 @@ InclinometerDriverRos::InclinometerDriverRos(ros::NodeHandle& ros_node, Hwt905Dr
 
 void InclinometerDriverRos::publish() {
     _imu_msg.header.stamp = ros::Time::now();
-    _imu_msg.header.frame_id = "world";
+    _imu_msg.header.frame_id = "base_link";
 
     _imu_msg.orientation.x = _quaternion.q_1;
     _imu_msg.orientation.y = _quaternion.q_2;
