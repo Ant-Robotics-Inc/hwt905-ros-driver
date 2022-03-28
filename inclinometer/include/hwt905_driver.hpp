@@ -88,6 +88,9 @@ private:
     void _linearize_ring_buffer();
     Hwt905_DataType_t check_payload();
 
+    bool is_check_sum_correct();
+
+
     uint8_t _ring_buffer[PAYLOAD_SIZE];
     uint8_t _linear_buffer[PAYLOAD_SIZE];
     size_t _ring_buffer_idx = 0;

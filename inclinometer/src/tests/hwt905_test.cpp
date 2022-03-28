@@ -136,7 +136,7 @@ TEST(Hwt905Test, process_normal_few_real_msgs){
 
 
 /**
- * @brief parse get_time()
+ * @brief parse get_accel()
  */
 TEST(Hwt905Test, get_accel_normal){
     Hwt905Driver hwt905_driver;
@@ -150,9 +150,10 @@ TEST(Hwt905Test, get_accel_normal){
         .temperature = 29.38,
     };
 
-    for (size_t idx = 0; idx < sizeof(BUFFER); idx++) {
-        hwt905_driver.process_next_byte(BUFFER[idx]);
+    for (size_t idx = 0; idx < sizeof(BUFFER) - 1; idx++) {
+        ASSERT_EQ(hwt905_driver.process_next_byte(BUFFER[idx]), DATA_TYPE_NONE);
     }
+    ASSERT_EQ(hwt905_driver.process_next_byte(BUFFER[10]), DATA_TYPE_ACCEL);
 
     Hwt905_Acceleration_t actual_accel;
     hwt905_driver.get_acceleration(&actual_accel);
@@ -160,6 +161,17 @@ TEST(Hwt905Test, get_accel_normal){
     ASSERT_NEAR(actual_accel.ay, expected_accel.ay, 0.001);
     ASSERT_NEAR(actual_accel.az, expected_accel.az, 0.001);
     ASSERT_NEAR(actual_accel.temperature, expected_accel.temperature, 0.01);
+}
+
+TEST(Hwt905Test, get_accel_wrong_checksum){
+    Hwt905Driver hwt905_driver;
+    const uint8_t BUFFER[] = {
+        0x55, 0x51, 0x01, 0x00, 0xFE, 0xFF, 0x00, 0x08, 0x7A, 0x0B, 0x31+1,
+    };
+
+    for (size_t idx = 0; idx < sizeof(BUFFER); idx++) {
+        ASSERT_EQ(hwt905_driver.process_next_byte(BUFFER[idx]), DATA_TYPE_NONE);
+    }
 }
 
 
@@ -178,9 +190,10 @@ TEST(Hwt905Test, get_angular_velocity_normal){
         .temperature = 29.38,
     };
 
-    for (size_t idx = 0; idx < sizeof(BUFFER); idx++) {
-        hwt905_driver.process_next_byte(BUFFER[idx]);
+    for (size_t idx = 0; idx < sizeof(BUFFER) - 1; idx++) {
+        ASSERT_EQ(hwt905_driver.process_next_byte(BUFFER[idx]), DATA_TYPE_NONE);
     }
+    ASSERT_EQ(hwt905_driver.process_next_byte(BUFFER[10]), DATA_TYPE_ANG_VEL);
 
     Hwt905_AngularVelocity_t actual_ang_vel;
     hwt905_driver.get_angular_velocity(&actual_ang_vel);
@@ -188,6 +201,17 @@ TEST(Hwt905Test, get_angular_velocity_normal){
     ASSERT_NEAR(actual_ang_vel.wy, expected_ang_vel.wy, 0.001);
     ASSERT_NEAR(actual_ang_vel.wz, expected_ang_vel.wz, 0.001);
     ASSERT_NEAR(actual_ang_vel.temperature, expected_ang_vel.temperature, 0.01);
+}
+
+TEST(Hwt905Test, get_angular_velocity_wrong_checksum){
+    Hwt905Driver hwt905_driver;
+    const uint8_t BUFFER[] = {
+        0x55, 0x52, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x7A, 0x0B, 0x2C+1,
+    };
+
+    for (size_t idx = 0; idx < sizeof(BUFFER); idx++) {
+        ASSERT_EQ(hwt905_driver.process_next_byte(BUFFER[idx]), DATA_TYPE_NONE);
+    }
 }
 
 /**
@@ -204,9 +228,10 @@ TEST(Hwt905Test, get_angle_normal){
         .yaw = -88.8,
     };
 
-    for (size_t idx = 0; idx < sizeof(BUFFER); idx++) {
-        hwt905_driver.process_next_byte(BUFFER[idx]);
+    for (size_t idx = 0; idx < sizeof(BUFFER) - 1; idx++) {
+        ASSERT_EQ(hwt905_driver.process_next_byte(BUFFER[idx]), DATA_TYPE_NONE);
     }
+    ASSERT_EQ(hwt905_driver.process_next_byte(BUFFER[10]), DATA_TYPE_ANGLE);
 
     Hwt905_Angle_t actual_angle;
     hwt905_driver.get_angle(&actual_angle);
@@ -214,6 +239,17 @@ TEST(Hwt905Test, get_angle_normal){
     ASSERT_NEAR(actual_angle.roll, expected_ang_vel.roll, 0.1);
     ASSERT_NEAR(actual_angle.pitch, expected_ang_vel.pitch, 0.1);
     ASSERT_NEAR(actual_angle.yaw, expected_ang_vel.yaw, 0.1);
+}
+
+TEST(Hwt905Test, get_angle_wrong_checksum){
+    Hwt905Driver hwt905_driver;
+    const uint8_t BUFFER[] = {
+        0x55, 0x53, 0xF4, 0xFF, 0xF5, 0xFF, 0xD3, 0xC0, 0x24, 0x29, 0x6F+1,
+    };
+
+    for (size_t idx = 0; idx < sizeof(BUFFER); idx++) {
+        ASSERT_EQ(hwt905_driver.process_next_byte(BUFFER[idx]), DATA_TYPE_NONE);
+    }
 }
 
 /**
@@ -231,9 +267,10 @@ TEST(Hwt905Test, get_magnetic_field_normal){
         .temperature = 29.38,
     };
 
-    for (size_t idx = 0; idx < sizeof(BUFFER); idx++) {
-        hwt905_driver.process_next_byte(BUFFER[idx]);
+    for (size_t idx = 0; idx < sizeof(BUFFER) - 1; idx++) {
+        ASSERT_EQ(hwt905_driver.process_next_byte(BUFFER[idx]), DATA_TYPE_NONE);
     }
+    ASSERT_EQ(hwt905_driver.process_next_byte(BUFFER[10]), DATA_TYPE_MAG);
 
     Hwt905_Magnetic_t actual_mag;
     hwt905_driver.get_magnetic_field(&actual_mag);
@@ -244,6 +281,16 @@ TEST(Hwt905Test, get_magnetic_field_normal){
     ASSERT_NEAR(actual_mag.temperature, expected_mag.temperature, 0.1);
 }
 
+TEST(Hwt905Test, get_magnetic_field_wrong_checksum){
+    Hwt905Driver hwt905_driver;
+    const uint8_t BUFFER[] = {
+        0x55, 0x54, 0x86, 0xF4, 0x37, 0x00, 0x92, 0xF8, 0x7A, 0x0B, 0x69 + 1,
+    };
+
+    for (size_t idx = 0; idx < sizeof(BUFFER); idx++) {
+        ASSERT_EQ(hwt905_driver.process_next_byte(BUFFER[idx]), DATA_TYPE_NONE);
+    }
+}
 
 /**
  * @brief parse get_quaternion()
@@ -260,9 +307,10 @@ TEST(Hwt905Test, get_quaternion_normal){
         .q_3 = 0.8182,
     };
 
-    for (size_t idx = 0; idx < sizeof(BUFFER); idx++) {
-        hwt905_driver.process_next_byte(BUFFER[idx]);
+    for (size_t idx = 0; idx < sizeof(BUFFER) - 1; idx++) {
+        ASSERT_EQ(hwt905_driver.process_next_byte(BUFFER[idx]), DATA_TYPE_NONE);
     }
+    ASSERT_EQ(hwt905_driver.process_next_byte(BUFFER[10]), DATA_TYPE_QUATERNION);
 
     Hwt905_Quaternion_t actual_quaternion;
     hwt905_driver.get_quaternion(&actual_quaternion);
@@ -273,6 +321,76 @@ TEST(Hwt905Test, get_quaternion_normal){
     ASSERT_NEAR(actual_quaternion.q_3, expected_quaternion.q_3, 0.001);
 }
 
+TEST(Hwt905Test, get_quaternion_wrong_checksum){
+    Hwt905Driver hwt905_driver;
+    const uint8_t BUFFER[] = {
+        0x55, 0x59, 0x94, 0x49, 0xCF, 0x00, 0x7F, 0x00, 0xBA, 0x68, 0xFB + 1,
+    };
+
+    for (size_t idx = 0; idx < sizeof(BUFFER); idx++) {
+        ASSERT_EQ(hwt905_driver.process_next_byte(BUFFER[idx]), DATA_TYPE_NONE);
+    }
+}
+
+TEST(Hwt905Test, get_quaternion_roll_rotation_head_down){
+    Hwt905Driver hwt905_driver;
+    const uint8_t BUFFER[] = {
+        0x55, 0x59, 0xAC, 0x68, 0x89, 0xDD, 0x3E, 0x14, 0x20, 0xC2, 0x5C,
+        0x55, 0x59, 0x1D, 0x68, 0xDE, 0xDB, 0x5B, 0x15, 0x82, 0xC2, 0xA0,
+        0x55, 0x59, 0xED, 0x67, 0xAA, 0xDA, 0xEB, 0x15, 0x1C, 0xC3, 0x65,
+    };
+    std::vector<Hwt905_Quaternion_t> expected_quaternions = {
+        {.q_0 = 0.817749, .q_1 = -0.269257, .q_2 = 0.158142, .q_3 = -0.483398},
+        {.q_0 = 0.813385, .q_1 = -0.282288, .q_2 = 0.166840, .q_3 = -0.480408},
+        {.q_0 = 0.811920, .q_1 = -0.291687, .q_2 = 0.171234, .q_3 = -0.475708},
+    };
+
+    std::vector<Hwt905_Quaternion_t> actual_quaternions;
+    for (size_t idx = 0; idx < sizeof(BUFFER); idx++) {
+        if (DATA_TYPE_QUATERNION == hwt905_driver.process_next_byte(BUFFER[idx])) {
+            Hwt905_Quaternion_t parsed_quaternion;
+            hwt905_driver.get_quaternion(&parsed_quaternion);
+            actual_quaternions.push_back(parsed_quaternion);
+        }
+    }
+
+    for (size_t q_idx = 0; q_idx < 3; q_idx++) {
+        ASSERT_NEAR(actual_quaternions[q_idx].q_0, expected_quaternions[q_idx].q_0, 0.001);
+        ASSERT_NEAR(actual_quaternions[q_idx].q_1, expected_quaternions[q_idx].q_1, 0.001);
+        ASSERT_NEAR(actual_quaternions[q_idx].q_2, expected_quaternions[q_idx].q_2, 0.001);
+        ASSERT_NEAR(actual_quaternions[q_idx].q_3, expected_quaternions[q_idx].q_3, 0.001);
+    }
+}
+
+TEST(Hwt905Test, get_quaternion_roll_rotation_head_up){
+    Hwt905Driver hwt905_driver;
+    const uint8_t BUFFER[] = {
+        0x55, 0x59, 0x7F, 0x63, 0xB2, 0x24, 0x21, 0xE7, 0xCA, 0xBC, 0xF4,
+        0x55, 0x59, 0x12, 0x64, 0x63, 0x23, 0xF2, 0xE7, 0xA3, 0xBC, 0xE2,
+        0x55, 0x59, 0xAC, 0x64, 0x1F, 0x21, 0xB2, 0xE8, 0x20, 0xBC, 0x74,
+    };
+    std::vector<Hwt905_Quaternion_t> expected_quaternions = {
+        {.q_0 = 0.777313, .q_1 = 0.286682, .q_2 = -0.194305, .q_3 = -0.525085},
+        {.q_0 = 0.781799, .q_1 = 0.276459, .q_2 = -0.187927, .q_3 = -0.526276},
+        {.q_0 = 0.786499, .q_1 = 0.258759, .q_2 = -0.182068, .q_3 = -0.530273},
+    };
+
+    std::vector<Hwt905_Quaternion_t> actual_quaternions;
+    for (size_t idx = 0; idx < sizeof(BUFFER); idx++) {
+        if (DATA_TYPE_QUATERNION == hwt905_driver.process_next_byte(BUFFER[idx])) {
+            Hwt905_Quaternion_t parsed_quaternion;
+            hwt905_driver.get_quaternion(&parsed_quaternion);
+            actual_quaternions.push_back(parsed_quaternion);
+        }
+    }
+
+    for (size_t q_idx = 0; q_idx < 3; q_idx++) {
+        ASSERT_NEAR(actual_quaternions[q_idx].q_0, expected_quaternions[q_idx].q_0, 0.001);
+        ASSERT_NEAR(actual_quaternions[q_idx].q_1, expected_quaternions[q_idx].q_1, 0.001);
+        ASSERT_NEAR(actual_quaternions[q_idx].q_2, expected_quaternions[q_idx].q_2, 0.001);
+        ASSERT_NEAR(actual_quaternions[q_idx].q_3, expected_quaternions[q_idx].q_3, 0.001);
+    }
+}
 
 int main(int argc, char *argv[]){
     testing::InitGoogleTest(&argc, argv);

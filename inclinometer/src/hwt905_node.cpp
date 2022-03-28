@@ -39,10 +39,10 @@ InclinometerDriverRos::InclinometerDriverRos(ros::NodeHandle& ros_node, Hwt905Dr
     // .q_1 = 0.0063,
     // .q_2 = 0.0039,
     // .q_3 = 0.8182,
-    _quaternion.q_0 = 0.5748;
-    _quaternion.q_1 = 0.0063;
-    _quaternion.q_2 = 0.0039;
-    _quaternion.q_3 = 0.8182;
+    _quaternion.q_0 = 0.817749;
+    _quaternion.q_1 = -0.269257;
+    _quaternion.q_2 = 0.158142;
+    _quaternion.q_3 = -0.483398;
 }
 
 void InclinometerDriverRos::publish() {

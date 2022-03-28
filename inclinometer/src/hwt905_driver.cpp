@@ -35,8 +35,7 @@ struct TimePayload_t {
     uint8_t hh;
     uint8_t mm;
     uint8_t ss;
-    uint8_t msL;
-    uint8_t msH;
+    uint16_t ms;
     uint8_t SUM;
 };
 
@@ -53,42 +52,30 @@ struct AccelerationPayload_t {
 ///< 5.1.3 Angular Velocity Output
 struct AngularVelocityPayload_t {
     uint16_t header;
-    uint8_t wxL;
-    int8_t wxH;
-    uint8_t wyL;
-    int8_t wyH;
-    uint8_t wzL;
-    int8_t wzH;
-    uint8_t TL;
-    uint8_t TH;
+    int16_t wx;
+    int16_t wy;
+    int16_t wz;
+    uint16_t temperature;
     uint8_t sum;
 };
 
 ///< 5.1.4  Angle Output
 struct AnglePayload_t {
     uint16_t header;
-    uint8_t RollL;
-    int8_t RollH;
-    uint8_t PitchL;
-    int8_t PitchH;
-    uint8_t YawL;
-    int8_t YawH;
-    uint8_t VL;
-    uint8_t VH;
+    int16_t roll;
+    int16_t pitch;
+    int16_t yaw;
+    uint16_t version;
     uint8_t sum;
 };
 
 ///< 5.1.5 Magnetic Output
 struct MagneticPayload_t {
     uint16_t header;
-    uint8_t HxL;
-    int8_t HxH;
-    uint8_t HyL;
-    int8_t HyH;
-    uint8_t HzL;
-    int8_t HzH;
-    uint8_t TL;
-    uint8_t TH;
+    int16_t Hx;
+    int16_t Hy;
+    int16_t Hz;
+    uint16_t temperature;
     uint8_t sum;
 };
 
@@ -147,7 +134,7 @@ bool Hwt905Driver::get_time(Hwt905_Time_t* time) {
     time->hour = payload->hh;
     time->minute = payload->mm;
     time->second = payload->ss;
-    time->millisecond = (payload->msH << 8) | payload->msL;
+    time->millisecond = payload->ms;
 
     return true;
 }
@@ -172,10 +159,10 @@ bool Hwt905Driver::get_angular_velocity(Hwt905_AngularVelocity_t* ang_vel) {
     }
 
     auto payload = reinterpret_cast<const AngularVelocityPayload_t*>(_linear_buffer);
-    ang_vel->wx = ((payload->wxH << 8) | payload->wxL) * 2000.0 / 32768;
-    ang_vel->wy = ((payload->wyH << 8) | payload->wyL) * 2000.0 / 32768;
-    ang_vel->wz = ((payload->wzH << 8) | payload->wzL) * 2000.0 / 32768;
-    ang_vel->temperature = ((payload->TH << 8) | payload->TL) * 0.01;
+    ang_vel->wx = payload->wx * (2000.0 / 32768);
+    ang_vel->wy = payload->wy * (2000.0 / 32768);
+    ang_vel->wz = payload->wz * (2000.0 / 32768);
+    ang_vel->temperature = payload->temperature * 0.01;
 
     return true;
 }
@@ -186,10 +173,10 @@ bool Hwt905Driver::get_angle(Hwt905_Angle_t* angle) {
     }
 
     auto payload = reinterpret_cast<const AnglePayload_t*>(_linear_buffer);
-    angle->roll = ((payload->RollH << 8) | payload->RollL) * (180.0 / 32768);
-    angle->pitch = ((payload->PitchH << 8) | payload->PitchL) * (180.0 / 32768);
-    angle->yaw = ((payload->YawH << 8) | payload->YawL) * (180.0 / 32768);
-    angle->version = ((payload->VH << 8) | payload->VL);
+    angle->roll = payload->roll * (180.0 / 32768);
+    angle->pitch = payload->pitch * (180.0 / 32768);
+    angle->yaw = payload->yaw * (180.0 / 32768);
+    angle->version = payload->version;
 
     return true;
 }
@@ -200,10 +187,10 @@ bool Hwt905Driver::get_magnetic_field(Hwt905_Magnetic_t* mag) {
     }
 
     auto payload = reinterpret_cast<const MagneticPayload_t*>(_linear_buffer);
-    mag->mag_x = (payload->HxH << 8) | payload->HxL;
-    mag->mag_y = (payload->HyH << 8) | payload->HyL;
-    mag->mag_z = (payload->HzH << 8) | payload->HzL;
-    mag->temperature = ((payload->TH << 8) | payload->TL) * 0.01;
+    mag->mag_x = payload->Hx;
+    mag->mag_y = payload->Hy;
+    mag->mag_z = payload->Hz;
+    mag->temperature = payload->temperature * 0.01;
 
     return true;
 }
@@ -228,39 +215,51 @@ void Hwt905Driver::_linearize_ring_buffer() {
 }
 
 Hwt905_DataType_t Hwt905Driver::check_payload() {
-    auto header = reinterpret_cast<const DataTypeHeader_t*>(_linear_buffer)[0];
-    auto data_type = DATA_TYPE_NONE;
-    switch (header)
-    {
-    case HEADER_TIME:
-        data_type = DATA_TYPE_TIME;
-        break;
-    
-    case HEADER_ACCEL:
-        data_type = DATA_TYPE_ACCEL;
-        break;
-
-    case HEADER_ANG_VEL:
-        data_type = DATA_TYPE_ANG_VEL;
-        break;
-
-    case HEADER_ANGLE:
-        data_type = DATA_TYPE_ANGLE;
-        break;
-
-    case HEADER_MAG:
-        data_type = DATA_TYPE_MAG;
-        break;
-
-    case HEADER_QUATERNION:
-        data_type = DATA_TYPE_QUATERNION;
-        break;
-
-    default:
-        data_type = DATA_TYPE_NONE;
+    if (!is_check_sum_correct()) {
+        return DATA_TYPE_NONE;
     }
 
-    ///< @todo check sum here
+    auto header = reinterpret_cast<const DataTypeHeader_t*>(_linear_buffer)[0];
+    Hwt905_DataType_t data_type;
+    switch (header) {
+        case HEADER_TIME:
+            data_type = DATA_TYPE_TIME;
+            break;
+
+        case HEADER_ACCEL:
+            data_type = DATA_TYPE_ACCEL;
+            break;
+
+        case HEADER_ANG_VEL:
+            data_type = DATA_TYPE_ANG_VEL;
+            break;
+
+        case HEADER_ANGLE:
+            data_type = DATA_TYPE_ANGLE;
+            break;
+
+        case HEADER_MAG:
+            data_type = DATA_TYPE_MAG;
+            break;
+
+        case HEADER_QUATERNION:
+            data_type = DATA_TYPE_QUATERNION;
+            break;
+
+        default:
+            data_type = DATA_TYPE_NONE;
+    }
 
     return data_type;
+}
+
+
+bool Hwt905Driver::is_check_sum_correct() {
+    auto payload = reinterpret_cast<const AccelerationPayload_t*>(_linear_buffer);
+    uint8_t calculated_sum = 0;
+    for (size_t idx = 0; idx < 10; idx++) {
+        calculated_sum += _linear_buffer[idx];
+    }
+    uint8_t received_sum = _linear_buffer[10];
+    return (calculated_sum == received_sum) ? true : false;
 }
