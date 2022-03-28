@@ -70,25 +70,20 @@ void InclinometerDriverRos::process_parsed_result(Hwt905_DataType_t data_type) {
             break;
         case DATA_TYPE_TIME:
             _hwt905_driver.get_time(&_time);
-            ROS_INFO("recv TIME");
             break;
         case DATA_TYPE_ACCEL:
             _hwt905_driver.get_acceleration(&_accel);
-            ROS_INFO("recv ACCEL");
             break;
         case DATA_TYPE_ANG_VEL:
             _hwt905_driver.get_angular_velocity(&_ang_vel);
-            ROS_INFO("recv ANG VEL");
             break;
         case DATA_TYPE_ANGLE:
             _hwt905_driver.get_angle(&_angle);
-            ROS_INFO("recv ANGLE");
             break;
         case DATA_TYPE_MAG:
             _hwt905_driver.get_magnetic_field(&_mag);
             break;
         case DATA_TYPE_QUATERNION:
-            ROS_INFO("recv QUATERNION");
             _hwt905_driver.get_quaternion(&_quaternion);
             break;
         default:
@@ -135,8 +130,6 @@ int main(int argc, char **argv) {
             auto data_type = hwt905_driver.process_next_byte(serial_recv_buf[byte_idx]);
             ros_driver.process_parsed_result(data_type);
         }
-
-        ROS_INFO_STREAM_THROTTLE(1, "Recv bytes: " << num_of_recv_bytes_amount);
     }
 
     return 0;
