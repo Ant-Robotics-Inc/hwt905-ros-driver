@@ -5,4 +5,4 @@ source /catkin_ws/devel/setup.bash
 set -e
 
 # set `line buffering` mode to stdout
-stdbuf -o L roslaunch inclinometer inclinometer.launch
+stdbuf -o L roslaunch inclinometer inclinometer_with_rviz.launch

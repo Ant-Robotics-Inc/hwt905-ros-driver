@@ -11,7 +11,8 @@ Commands:
 build           Build docker image.
 pull            Pull docker image.
 push            Push docker image.
-run             Run inno_vtol dynamics simulator in HITL mode.
+run             Run inclinometer
+rviz            Run inclinometer with rviz.
 test            Run tests
 interactive     Run container in interactive mode.
 kill            Kill all containers.
@@ -31,18 +32,14 @@ setup_config() {
     fi
     DOCKER_CONTAINER_NAME=$DOCKERHUB_REPOSITOTY:$TAG_NAME
 
-    DEV_PATH_SYMLINK=""
-    
     DOCKER_FLAGS="--privileged -v $DEV_PATH_SYMLINK:$DEV_PATH_SYMLINK       \
                  --net=host                                                 \
-                 -e DEV_PATH_SYMLINK=$DEV_PATH_SYMLINK                      \
                  -v "/tmp/.X11-unix:/tmp/.X11-unix:rw"                      \
                  -e DISPLAY=$DISPLAY                                        \
                  -e QT_X11_NO_MITSHM=1)"
 
     echo "TAG_NAME is" $TAG_NAME
     echo "DOCKERHUB_REPOSITOTY is" $DOCKERHUB_REPOSITOTY
-    # echo "DEV_PATH_SYMLINK is" $DEV_PATH_SYMLINK
 }
 
 build_docker_image() {
@@ -64,6 +61,12 @@ run() {
     setup_config
     xhost +local:docker
     sudo docker container run --rm $DOCKER_FLAGS $DOCKER_CONTAINER_NAME ./inclinometer/scripts/run_inclinometer.sh
+}
+
+run_rviz() {
+    setup_config
+    xhost +local:docker
+    sudo docker container run --rm $DOCKER_FLAGS $DOCKER_CONTAINER_NAME ./inclinometer/scripts/run_inclinometer_with_rviz.sh
 }
 
 test() {
@@ -92,6 +95,8 @@ elif [ "$1" = "push" ]; then
     push_docker_image
 elif [ "$1" = "run" ]; then
     run
+elif [ "$1" = "rviz" ]; then
+    run_rviz
 elif [ "$1" = "test" ]; then
     test
 elif [ "$1" = "interactive" ]; then

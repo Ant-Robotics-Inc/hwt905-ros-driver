@@ -47,10 +47,10 @@ void InclinometerDriverRos::publish() {
     _imu_msg.header.stamp = ros::Time::now();
     _imu_msg.header.frame_id = "world";
 
-    _imu_msg.orientation.x = _quaternion.q_1;   // _quaternion.q_0
-    _imu_msg.orientation.y = _quaternion.q_2;   // _quaternion.q_1
-    _imu_msg.orientation.z = _quaternion.q_3;   // _quaternion.q_2
-    _imu_msg.orientation.w = _quaternion.q_0;   // _quaternion.q_3
+    _imu_msg.orientation.x = _quaternion.q_1;
+    _imu_msg.orientation.y = _quaternion.q_2;
+    _imu_msg.orientation.z = _quaternion.q_3;
+    _imu_msg.orientation.w = _quaternion.q_0;
 
     _imu_msg.angular_velocity.x = _ang_vel.wx;
     _imu_msg.angular_velocity.y = _ang_vel.wy;
@@ -134,10 +134,6 @@ int main(int argc, char **argv) {
         for (size_t byte_idx = 0; byte_idx < num_of_recv_bytes; byte_idx++) {
             auto data_type = hwt905_driver.process_next_byte(serial_recv_buf[byte_idx]);
             ros_driver.process_parsed_result(data_type);
-
-            if (serial_recv_buf[byte_idx] == 0x55) {
-                ROS_INFO_STREAM_THROTTLE(1, "Probably get smth" << serial_recv_buf[byte_idx]);
-            }
         }
 
         ROS_INFO_STREAM_THROTTLE(1, "Recv bytes: " << num_of_recv_bytes_amount);
