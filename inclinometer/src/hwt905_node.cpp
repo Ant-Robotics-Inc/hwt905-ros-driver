@@ -52,9 +52,9 @@ void InclinometerDriverRos::publish() {
     _imu_msg.orientation.z = _quaternion.q_3;
     _imu_msg.orientation.w = _quaternion.q_0;
 
-    _imu_msg.angular_velocity.x = _ang_vel.wx;
-    _imu_msg.angular_velocity.y = _ang_vel.wy;
-    _imu_msg.angular_velocity.z = _ang_vel.wz;
+    _imu_msg.angular_velocity.x = _ang_vel.wx * 3.14 / 180;
+    _imu_msg.angular_velocity.y = _ang_vel.wy * 3.14 / 180;
+    _imu_msg.angular_velocity.z = _ang_vel.wz * 3.14 / 180;
 
     _imu_msg.linear_acceleration.x = _accel.ax;
     _imu_msg.linear_acceleration.y = _accel.ay;
