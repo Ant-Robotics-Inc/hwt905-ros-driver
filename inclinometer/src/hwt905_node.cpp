@@ -35,14 +35,12 @@ InclinometerDriverRos::InclinometerDriverRos(ros::NodeHandle& ros_node, Hwt905Dr
 
     _imu_msg.header.stamp = ros::Time::now();
     _imu_msg.header.frame_id = "world";
-    // .q_0 = 0.5748,
-    // .q_1 = 0.0063,
-    // .q_2 = 0.0039,
-    // .q_3 = 0.8182,
-    _quaternion.q_0 = 0.817749;
-    _quaternion.q_1 = -0.269257;
-    _quaternion.q_2 = 0.158142;
-    _quaternion.q_3 = -0.483398;
+
+    // horizontal
+    _quaternion.q_0 = 0;
+    _quaternion.q_1 = 0;
+    _quaternion.q_2 = 0;
+    _quaternion.q_3 = 1.0;
 }
 
 void InclinometerDriverRos::publish() {

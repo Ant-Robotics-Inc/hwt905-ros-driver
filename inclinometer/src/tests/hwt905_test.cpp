@@ -332,6 +332,37 @@ TEST(Hwt905Test, get_quaternion_wrong_checksum){
     }
 }
 
+TEST(Hwt905Test, get_quaternion_horizontal){
+    Hwt905Driver hwt905_driver;
+    const uint8_t BUFFER[] = {
+        0x55, 0x59, 0x6C, 0x68, 0x5E, 0xFE, 0xAC, 0xFF, 0x00, 0xB6, 0x3F,
+        0x55, 0x59, 0x82, 0x68, 0x36, 0xFE, 0xE7, 0xFF, 0x20, 0xB6, 0x88,
+        0x55, 0x59, 0xAF, 0x68, 0x2E, 0xFE, 0x3C, 0x00, 0x61, 0xB6, 0x44,
+    };
+    std::vector<Hwt905_Quaternion_t> expected_quaternions = {
+        {.q_0 = 0.815796, .q_1 = -0.0127563, .q_2 = -0.002563480, .q_3 = -0.578125},
+        {.q_0 = 0.816467, .q_1 = -0.0139771, .q_2 = -0.000762939, .q_3 = -0.577148},
+        {.q_0 = 0.817841, .q_1 = -0.0142212, .q_2 =  0.001831050, .q_3 = -0.575165},
+    };
+
+    std::vector<Hwt905_Quaternion_t> actual_quaternions;
+    for (size_t idx = 0; idx < sizeof(BUFFER); idx++) {
+        if (DATA_TYPE_QUATERNION == hwt905_driver.process_next_byte(BUFFER[idx])) {
+            Hwt905_Quaternion_t parsed_quaternion;
+            hwt905_driver.get_quaternion(&parsed_quaternion);
+            actual_quaternions.push_back(parsed_quaternion);
+            std::cout << "hor: " << parsed_quaternion.q_0 << ", " << parsed_quaternion.q_1 << ", " << parsed_quaternion.q_2 << ", " << parsed_quaternion.q_3 << std::endl;
+        }
+    }
+
+    for (size_t q_idx = 0; q_idx < 3; q_idx++) {
+        ASSERT_NEAR(actual_quaternions[q_idx].q_0, expected_quaternions[q_idx].q_0, 0.001);
+        ASSERT_NEAR(actual_quaternions[q_idx].q_1, expected_quaternions[q_idx].q_1, 0.001);
+        ASSERT_NEAR(actual_quaternions[q_idx].q_2, expected_quaternions[q_idx].q_2, 0.001);
+        ASSERT_NEAR(actual_quaternions[q_idx].q_3, expected_quaternions[q_idx].q_3, 0.001);
+    }
+}
+
 TEST(Hwt905Test, get_quaternion_roll_rotation_head_down){
     Hwt905Driver hwt905_driver;
     const uint8_t BUFFER[] = {
@@ -391,6 +422,37 @@ TEST(Hwt905Test, get_quaternion_roll_rotation_head_up){
         ASSERT_NEAR(actual_quaternions[q_idx].q_3, expected_quaternions[q_idx].q_3, 0.001);
     }
 }
+
+TEST(Hwt905Test, get_quaternion_pitch_rotation_right){
+    Hwt905Driver hwt905_driver;
+    const uint8_t BUFFER[] = {
+        0x55, 0x59, 0x0F, 0x67, 0xC6, 0x1B, 0x87, 0x20, 0x4C, 0xC1, 0xB9,
+        0x55, 0x59, 0x71, 0x66, 0xAC, 0x1D, 0xA0, 0x24, 0x74, 0xC3, 0x49,
+        0x55, 0x59, 0x9B, 0x65, 0xD7, 0x1D, 0xF6, 0x27, 0x3E, 0xC4, 0xC1,
+    };
+    std::vector<Hwt905_Quaternion_t> expected_quaternions = {
+        {.q_0 = 0.805145, .q_1 = 0.21698, .q_2 = 0.25412, .q_3 = -0.489868},
+        {.q_0 = 0.800323, .q_1 = 0.231812, .q_2 = 0.286133, .q_3 = -0.473022},
+        {.q_0 = 0.793793, .q_1 = 0.233124, .q_2 = 0.312195, .q_3 = -0.466858},
+    };
+
+    std::vector<Hwt905_Quaternion_t> actual_quaternions;
+    for (size_t idx = 0; idx < sizeof(BUFFER); idx++) {
+        if (DATA_TYPE_QUATERNION == hwt905_driver.process_next_byte(BUFFER[idx])) {
+            Hwt905_Quaternion_t parsed_quaternion;
+            hwt905_driver.get_quaternion(&parsed_quaternion);
+            actual_quaternions.push_back(parsed_quaternion);
+        }
+    }
+
+    for (size_t q_idx = 0; q_idx < 3; q_idx++) {
+        ASSERT_NEAR(actual_quaternions[q_idx].q_0, expected_quaternions[q_idx].q_0, 0.001);
+        ASSERT_NEAR(actual_quaternions[q_idx].q_1, expected_quaternions[q_idx].q_1, 0.001);
+        ASSERT_NEAR(actual_quaternions[q_idx].q_2, expected_quaternions[q_idx].q_2, 0.001);
+        ASSERT_NEAR(actual_quaternions[q_idx].q_3, expected_quaternions[q_idx].q_3, 0.001);
+    }
+}
+
 
 int main(int argc, char *argv[]){
     testing::InitGoogleTest(&argc, argv);
