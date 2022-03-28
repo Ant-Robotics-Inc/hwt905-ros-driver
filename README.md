@@ -22,12 +22,11 @@ This is ROS-package that allows you work with this device.
 
 **Subscribed Topics**
 
-None
+- None
 
 **Published Topics**
 
-- /inclinometer/imu ([sensor_msgs/Imu](http://docs.ros.org/en/melodic/api/sensor_msgs/html/msg/Imu.html))
-* The standard ROS imu sensor msg which include orientation by filtered RPY
+- /inclinometer ([sensor_msgs/Imu](http://docs.ros.org/en/melodic/api/sensor_msgs/html/msg/Imu.html)) - the standard ROS imu sensor msg which include orientation, angular velocity and linear acceleration
 
 **Sensor configuration**
 
@@ -35,25 +34,21 @@ Specific settings might be done via config/driver_config.yaml configuration file
 
 ## 3. Running with docker
 
-First of all, you need to clone this repository with (important) submodules:
+First of all, you need to clone this repository:
 
 ```bash
-git clone https://github.com/Ant-Robotics-Inc/hwt905-ros-driver --recursive
-```
-
-Don't forget to update submodules after each pull. Or call this command if you forget to add `--recursive` in previous command:
-
-```bash
-git submodule update --init --recursive
+git clone https://github.com/Ant-Robotics-Inc/hwt905-ros-drivers
 ```
 
 The easiest way to play with this package is to use [scripts/docker.sh](scripts/docker.sh) script.
 
 Try `./scripts/docker.sh --help` to get detailed info.
 
-Typically you need 3 commands:
+Typically you need 5 commands:
 - `./scripts/docker.sh build` to build the docker image
-- `./scripts/docker.sh run` to run the docker container
+- `./scripts/docker.sh run` to run the docker container with inclinometer node
+- `./scripts/docker.sh rviz` to run the docker container with inclinometer node + RVIZ node
+- `./scripts/docker.sh interactive` to run the docker container in interactive mode
 - `./scripts/docker.sh kill` to kill all existed containers (just in case if your container unsuccessfully finished, sometimes it happens yet).
 
 ## 4. Running without docker

@@ -31,10 +31,10 @@ private:
 
 InclinometerDriverRos::InclinometerDriverRos(ros::NodeHandle& ros_node, Hwt905Driver& hwt905_driver):
         _ros_node(ros_node), _hwt905_driver(hwt905_driver) {
-    _ros_pub = ros_node.advertise<sensor_msgs::Imu>("/inclinometer", 5);
+    _ros_pub = ros_node.advertise<sensor_msgs::Imu>("/imu", 5);
 
     _imu_msg.header.stamp = ros::Time::now();
-    _imu_msg.header.frame_id = "world";
+    _imu_msg.header.frame_id = "base_link";
 
     // horizontal
     _quaternion.q_0 = 0;
