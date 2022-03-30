@@ -1,3 +1,3 @@
-port:       /dev/ttyUSB0
+port:       /dev/imu
 baudrate:   115200
 pub_rate:   200
